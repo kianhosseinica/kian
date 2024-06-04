@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Success</title>
+    <script>
+        setTimeout(function() {
+            window.location.href = "{% url 'update_multiple_items' %}";
+        }, 7000); // 7000 milliseconds = 7 seconds
+    </script>
+</head>
+<body>
+    <h1>Update Successful</h1>
+    <p>All items were updated successfully. You will be redirected to the update page shortly.</p>
+</body>
+</html>

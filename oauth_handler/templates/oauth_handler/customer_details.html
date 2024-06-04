@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Details</title>
+</head>
+<body>
+    <h1>Customer Details</h1>
+    <div id="customer-details"></div>
+
+    <script>
+        const customerId = {{ customer_id }};
+        fetch(`/oauth/customer-details/${customerId}/`)
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('customer-details');
+                container.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            });
+    </script>
+</body>
+</html>

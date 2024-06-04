@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Item Details</title>
+</head>
+<body>
+    <h1>Get Item Details</h1>
+    <form method="POST" action="{% url 'get_item_details' %}">
+        {% csrf_token %}
+        <label for="manufacturer_sku">Manufacturer SKU:</label>
+        <input type="text" id="manufacturer_sku" name="manufacturer_sku" required>
+        <button type="submit">Get Details</button>
+    </form>
+    {% if item %}
+        <h2>Item Details</h2>
+        <p><strong>Description:</strong> {{ item.description }}</p>
+        <p><strong>System SKU:</strong> {{ item.systemSku }}</p>
+        <h3>Item Shops</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Shop ID</th>
+                    <th>Quantity on Hand (QOH)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for shop in item.ItemShops.ItemShop %}
+                    <tr>
+                        <td>{{ shop.shopID }}</td>
+                        <td>{{ shop.qoh }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</body>
+</html>

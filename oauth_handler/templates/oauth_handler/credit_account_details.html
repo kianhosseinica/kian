@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Account Details</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #fffaf0;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #ffefd5;
+            padding: 30px 50px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1200px;
+            height: 80vh; /* Adjust the height of the container */
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            color: #d2691e;
+            text-align: center;
+            border-bottom: 2px solid #d2691e;
+            padding-bottom: 10px;
+        }
+        .table-container {
+            flex: 1;
+            overflow-y: auto; /* Enable vertical scrolling */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 1em;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #d2691e;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        tbody tr:nth-child(even) {
+            background: #fff5e6;
+        }
+        tbody tr:hover {
+            background: #ffe4b5;
+            cursor: pointer;
+        }
+        .percentage-used {
+            font-weight: bold;
+            color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            text-align: center;
+            display: inline-block;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Credit Account Details</h1>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Credit Limit</th>
+                        <th>Balance</th>
+                        <th>Percentage Used</th>
+                        <th>Email</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Phone Number</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customer_details %}
+                    <tr>
+                        <td>{{ customer.creditLimit }}</td>
+                        <td>{{ customer.balance }}</td>
+                        <td>
+                            <span class="percentage-used" style="background: linear-gradient(to right, #8b0000 {{ customer.percentageUsed }}%, #ff6347 {{ customer.percentageUsed }}%);">
+                                {{ customer.percentageUsed }}%
+                            </span>
+                        </td>
+                        <td>{{ customer.email }}</td>
+                        <td>{{ customer.firstName }}</td>
+                        <td>{{ customer.lastName }}</td>
+                        <td>{{ customer.phone }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

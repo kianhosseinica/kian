@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Multiple Items</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: #333;
+        }
+        .item-row {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .item-row label {
+            flex: 1;
+            text-align: left;
+            margin-right: 10px;
+        }
+        .item-row input {
+            flex: 2;
+            margin-right: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .item-row button {
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .item-row button:hover {
+            background: #c82333;
+        }
+        .add-button {
+            background: #28a745;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background 0.3s ease;
+        }
+        .add-button:hover {
+            background: #218838;
+        }
+        .submit-button {
+            background: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .submit-button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Update Multiple Items</h1>
+        <form method="POST" action="{% url 'update_multiple_items_preview' %}">
+            {% csrf_token %}
+            <div id="item-rows">
+                {% for update in updates %}
+                <div class="item-row" id="item-row-{{ forloop.counter }}">
+                    <label for="manufacturer_sku_{{ forloop.counter }}">Manufacturer SKU:</label>
+                    <input type="text" id="manufacturer_sku_{{ forloop.counter }}" name="manufacturer_sku_{{ forloop.counter }}" value="{{ update.manufacturer_sku }}" required>
+                    <label for="quantity_{{ forloop.counter }}">Quantity:</label>
+                    <input type="number" id="quantity_{{ forloop.counter }}" name="quantity_{{ forloop.counter }}" value="{{ update.quantity }}" required>
+                    <button type="button" onclick="removeItemRow('item-row-{{ forloop.counter }}')">Remove</button>
+                </div>
+                {% empty %}
+                <div class="item-row" id="item-row-1">
+                    <label for="manufacturer_sku_1">Manufacturer SKU:</label>
+                    <input type="text" id="manufacturer_sku_1" name="manufacturer_sku_1" required>
+                    <label for="quantity_1">Quantity:</label>
+                    <input type="number" id="quantity_1" name="quantity_1" required>
+                    <button type="button" onclick="removeItemRow('item-row-1')">Remove</button>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="add-button" onclick="addItemRow()">Add Another Item</button>
+            <br><br>
+            <button type="submit" class="submit-button">Next</button>
+        </form>
+    </div>
+
+    <script>
+        let itemCount = {{ updates|length }} || 1;
+
+        function addItemRow() {
+            itemCount++;
+            const itemRows = document.getElementById('item-rows');
+            const newRow = document.createElement('div');
+            newRow.classList.add('item-row');
+            newRow.id = `item-row-${itemCount}`;
+            newRow.innerHTML = `
+                <label for="manufacturer_sku_${itemCount}">Manufacturer SKU:</label>
+                <input type="text" id="manufacturer_sku_${itemCount}" name="manufacturer_sku_${itemCount}" required>
+                <label for="quantity_${itemCount}">Quantity:</label>
+                <input type="number" id="quantity_${itemCount}" name="quantity_${itemCount}" required>
+                <button type="button" onclick="removeItemRow('item-row-${itemCount}')">Remove</button>
+            `;
+            itemRows.appendChild(newRow);
+        }
+
+        function removeItemRow(rowId) {
+            const row = document.getElementById(rowId);
+            row.parentNode.removeChild(row);
+        }
+    </script>
+</body>
+</html>

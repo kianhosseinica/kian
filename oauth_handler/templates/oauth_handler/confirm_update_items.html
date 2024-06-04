@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Update Items</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1000px;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: #333;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #f4f4f4;
+        }
+        button {
+            background: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Confirm Update Items</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Manufacturer SKU</th>
+                    <th>Description</th>
+                    <th>Current Quantity</th>
+                    <th>Quantity to Add</th>
+                    <th>New Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in item_details %}
+                <tr>
+                    <td>{{ item.manufacturer_sku }}</td>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.current_qoh }}</td>
+                    <td>{{ item.quantity_to_add }}</td>
+                    <td>{{ item.new_qoh }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="button-container">
+            <form method="GET" action="{% url 'update_multiple_items' %}">
+                <button type="submit">Edit Items</button>
+            </form>
+            <form method="POST" action="{% url 'confirm_update_items' %}">
+                {% csrf_token %}
+                <button type="submit">Confirm Updates</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
