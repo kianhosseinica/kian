@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import home, start_refresh_and_redirect, exchange_token, refresh_token, get_account_info, get_item_details, update_item_quantity, add_quantity_to_item, update_multiple_items_preview, confirm_update_items, get_credit_account_details, get_customer_details
+from .views import home,enter_password, start_refresh_and_redirect, exchange_token, refresh_token, get_account_info, get_item_details, update_item_quantity, add_quantity_to_item, update_multiple_items_preview, confirm_update_items, get_credit_account_details, get_customer_details
 
 urlpatterns = [
     path('', home, name='home'),
+    path('enter_password/', enter_password, name='enter_password'),
     path('start/', start_refresh_and_redirect, name='start_refresh_and_redirect'),
     path('exchange-token/', exchange_token, name='exchange_token'),
     path('refresh-token/', refresh_token, name='refresh_token'),

@@ -4,14 +4,28 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-
-
-
+from .forms import PasswordForm
 ACCESS_TOKEN = None
-
+PASSWORD = 'morris#sia@mehran$mohammad'  # Replace with your actual password
 
 def home(request):
+    if not request.session.get('authenticated', False):
+        return redirect('enter_password')
     return render(request, 'oauth_handler/home.html')
+
+@csrf_exempt
+def enter_password(request):
+    if request.method == 'POST':
+        form = PasswordForm(request.POST)
+        if form.is_valid():
+            if form.cleaned_data['password'] == PASSWORD:
+                request.session['authenticated'] = True
+                return redirect('home')
+            else:
+                form.add_error('password', 'Incorrect password')
+    else:
+        form = PasswordForm()
+    return render(request, 'oauth_handler/enter_password.html', {'form': form})
 
 @csrf_exempt
 def start_refresh_and_redirect(request):
@@ -21,23 +35,6 @@ def start_refresh_and_redirect(request):
         redirect_url = request.POST.get('redirect_url')
         return redirect(redirect_url)
     return JsonResponse({'error': 'Invalid request method'}, status=400)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @csrf_exempt
 def exchange_token(request):
@@ -223,27 +220,21 @@ def add_quantity_to_item(request):
     else:
         return render(request, 'oauth_handler/add_quantity_to_item.html')
 
-
-
-
-
-
-
-
-
 @csrf_exempt
 def update_multiple_items_preview(request):
     global ACCESS_TOKEN
     if request.method == 'POST':
         updates = []
         for key, value in request.POST.items():
-            if key.startswith('manufacturer_sku_'):
+            if key.startswith('manufacturer_sku_') or key.startswith('upc_'):
                 index = key.split('_')[-1]
-                manufacturer_sku = value
-                quantity = request.POST.get(f'quantity_{index}')
-                if manufacturer_sku and quantity:
+                manufacturer_sku = request.POST.get(f'manufacturer_sku_{index}', '').strip()
+                upc = request.POST.get(f'upc_{index}', '').strip()
+                quantity = request.POST.get(f'quantity_{index}', '')
+                if (manufacturer_sku or upc) and quantity:
                     updates.append({
                         'manufacturer_sku': manufacturer_sku,
+                        'upc': upc,
                         'quantity': int(quantity)
                     })
 
@@ -253,15 +244,22 @@ def update_multiple_items_preview(request):
             return JsonResponse({'error': 'Access token not available'}, status=400)
 
         item_details = []
+        unique_items = set()
         for update in updates:
             manufacturer_sku = update.get('manufacturer_sku')
+            upc = update.get('upc')
             quantity_to_add = int(update.get('quantity'))
+
+            if (manufacturer_sku, upc) in unique_items:
+                continue  # Skip duplicates
+            unique_items.add((manufacturer_sku, upc))
 
             # Get item details
             url = f"https://api.lightspeedapp.com/API/V3/Account/{settings.LIGHTSPEED_ACCOUNT_ID}/Item.json"
             params = {
                 'load_relations': '["ItemShops"]',
-                'manufacturerSku': manufacturer_sku
+                'manufacturerSku': manufacturer_sku,
+                'upc': upc
             }
             headers = {
                 'Authorization': f'Bearer {ACCESS_TOKEN}'
@@ -269,10 +267,10 @@ def update_multiple_items_preview(request):
 
             response = requests.get(url, headers=headers, params=params)
             response_data = response.json()
-            logging.info(f"Response data for SKU {manufacturer_sku}: {response_data}")
+            logging.info(f"Response data for SKU {manufacturer_sku or upc}: {response_data}")
 
             if response.status_code != 200 or 'Item' not in response_data:
-                item_details.append({'manufacturer_sku': manufacturer_sku, 'status': 'failed', 'reason': 'Failed to fetch item details'})
+                item_details.append({'manufacturer_sku': manufacturer_sku, 'upc': upc, 'status': 'failed', 'reason': 'Failed to fetch item details'})
                 continue
 
             item_data = response_data['Item']
@@ -285,7 +283,7 @@ def update_multiple_items_preview(request):
             # Find the correct ItemShop
             item_shop = next((shop for shop in item_data['ItemShops']['ItemShop'] if shop['shopID'] != '0'), None)
             if not item_shop:
-                item_details.append({'manufacturer_sku': manufacturer_sku, 'status': 'failed', 'reason': 'Valid ItemShop not found'})
+                item_details.append({'manufacturer_sku': manufacturer_sku, 'upc': upc, 'status': 'failed', 'reason': 'Valid ItemShop not found'})
                 continue
 
             item_shop_id = item_shop['itemShopID']
@@ -293,6 +291,7 @@ def update_multiple_items_preview(request):
 
             item_details.append({
                 'manufacturer_sku': manufacturer_sku,
+                'upc': upc,
                 'quantity_to_add': quantity_to_add,
                 'current_qoh': current_qoh,
                 'new_qoh': current_qoh + quantity_to_add,
@@ -319,6 +318,7 @@ def confirm_update_items(request):
         results = []
         for item in item_details:
             manufacturer_sku = item['manufacturer_sku']
+            upc = item['upc']
             new_quantity = item['new_qoh']
             item_id = item['item_id']
             item_shop_id = item['item_shop_id']
@@ -342,9 +342,9 @@ def confirm_update_items(request):
 
             response = requests.put(url, headers=headers, json=payload)
             if response.status_code == 200:
-                results.append({'manufacturer_sku': manufacturer_sku, 'status': 'success'})
+                results.append({'manufacturer_sku': manufacturer_sku, 'upc': upc, 'status': 'success'})
             else:
-                results.append({'manufacturer_sku': manufacturer_sku, 'status': 'failed', 'reason': response.text})
+                results.append({'manufacturer_sku': manufacturer_sku, 'upc': upc, 'status': 'failed', 'reason': response.text})
 
         all_success = all(result['status'] == 'success' for result in results)
 
@@ -357,9 +357,6 @@ def confirm_update_items(request):
     else:
         item_details = request.session.get('item_details', [])
         return render(request, 'oauth_handler/confirm_update_items.html', {'item_details': item_details})
-
-
-
 
 @csrf_exempt
 def get_customer_details(request, customer_id):
@@ -424,8 +421,6 @@ def get_credit_account_details(request):
         return render(request, 'oauth_handler/credit_account_details.html', {'customer_details': customer_details})
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=400)
-
-
 
 def get_customer_info(customer_id):
     url = f"https://api.lightspeedapp.com/API/V3/Account/{settings.LIGHTSPEED_ACCOUNT_ID}/Customer/{customer_id}.json"

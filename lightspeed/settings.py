@@ -49,7 +49,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'oauth_handler.middleware.AuthenticationMiddleware',  # Add this line
 ]
+
 
 ROOT_URLCONF = 'lightspeed.urls'
 
