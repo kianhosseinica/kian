@@ -18,17 +18,17 @@
         }
         .container {
             background: #fff;
-            padding: 20px 40px;
+            padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 1000px;
+            width: 90%;
+            max-width: 800px;
+            text-align: center;
         }
         h1 {
             margin-bottom: 20px;
             font-size: 2em;
             color: #333;
-            text-align: center;
         }
         table {
             width: 100%;
@@ -36,31 +36,40 @@
             margin-bottom: 20px;
         }
         table, th, td {
-            border: 1px solid #ddd;
+            border: 1px solid #ccc;
         }
         th, td {
             padding: 12px;
             text-align: left;
         }
         th {
-            background: #f4f4f4;
+            background: #28a745;
+            color: #fff;
         }
-        button {
+        tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .button-container button {
             background: #007bff;
             color: #fff;
             border: none;
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1em;
             transition: background 0.3s ease;
         }
-        button:hover {
+        .button-container button:hover {
             background: #0056b3;
         }
-        .button-container {
-            display: flex;
-            justify-content: space-between;
+        .edit-button {
+            background: #ffc107;
+        }
+        .edit-button:hover {
+            background: #e0a800;
         }
     </style>
 </head>
@@ -70,7 +79,7 @@
         <table>
             <thead>
                 <tr>
-                    <th>Manufacturer SKU</th>
+                    <th>{{ toggle_choice|title }}</th>
                     <th>Description</th>
                     <th>Current Quantity</th>
                     <th>Quantity to Add</th>
@@ -80,7 +89,7 @@
             <tbody>
                 {% for item in item_details %}
                 <tr>
-                    <td>{{ item.manufacturer_sku }}</td>
+                    <td>{{ item.identifier }}</td>
                     <td>{{ item.description }}</td>
                     <td>{{ item.current_qoh }}</td>
                     <td>{{ item.quantity_to_add }}</td>
@@ -91,11 +100,11 @@
         </table>
         <div class="button-container">
             <form method="GET" action="{% url 'update_multiple_items' %}">
-                <button type="submit">Edit Items</button>
+                <button type="submit" class="edit-button">Edit</button>
             </form>
             <form method="POST" action="{% url 'confirm_update_items' %}">
                 {% csrf_token %}
-                <button type="submit">Confirm Updates</button>
+                <button type="submit">Confirm</button>
             </form>
         </div>
     </div>

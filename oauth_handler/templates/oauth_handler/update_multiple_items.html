@@ -110,18 +110,18 @@
         <form method="POST" action="{% url 'update_multiple_items_preview' %}" onsubmit="return validateForm()">
             {% csrf_token %}
             <div class="toggle-row">
-                <select id="global-toggle" onchange="applyGlobalToggle()">
-                    <option value="sku">Manufacturer SKU</option>
-                    <option value="upc">UPC</option>
+                <select id="global-toggle" name="global_toggle" onchange="applyGlobalToggle()">
+                    <option value="sku" {% if toggle_choice == 'sku' %}selected{% endif %}>Manufacturer SKU</option>
+                    <option value="upc" {% if toggle_choice == 'upc' %}selected{% endif %}>UPC</option>
                 </select>
             </div>
             <div id="item-rows">
                 {% for update in updates %}
                 <div class="item-row" id="item-row-{{ forloop.counter }}">
                     <label for="manufacturer_sku_{{ forloop.counter }}">Manufacturer SKU:</label>
-                    <input type="text" id="manufacturer_sku_{{ forloop.counter }}" name="manufacturer_sku_{{ forloop.counter }}" value="{{ update.manufacturer_sku }}">
+                    <input type="text" id="manufacturer_sku_{{ forloop.counter }}" name="manufacturer_sku_{{ forloop.counter }}" value="{{ update.manufacturer_sku }}" {% if toggle_choice == 'upc' %}disabled{% endif %}>
                     <label for="upc_{{ forloop.counter }}">UPC:</label>
-                    <input type="text" id="upc_{{ forloop.counter }}" name="upc_{{ forloop.counter }}" value="{{ update.upc }}" disabled>
+                    <input type="text" id="upc_{{ forloop.counter }}" name="upc_{{ forloop.counter }}" value="{{ update.upc }}" {% if toggle_choice == 'sku' %}disabled{% endif %}>
                     <label for="quantity_{{ forloop.counter }}">Quantity:</label>
                     <input type="number" id="quantity_{{ forloop.counter }}" name="quantity_{{ forloop.counter }}" value="{{ update.quantity }}" required>
                     <button type="button" onclick="removeItemRow('item-row-{{ forloop.counter }}')">Remove</button>
@@ -129,9 +129,9 @@
                 {% empty %}
                 <div class="item-row" id="item-row-1">
                     <label for="manufacturer_sku_1">Manufacturer SKU:</label>
-                    <input type="text" id="manufacturer_sku_1" name="manufacturer_sku_1">
+                    <input type="text" id="manufacturer_sku_1" name="manufacturer_sku_1" {% if toggle_choice == 'upc' %}disabled{% endif %}>
                     <label for="upc_1">UPC:</label>
-                    <input type="text" id="upc_1" name="upc_1" disabled>
+                    <input type="text" id="upc_1" name="upc_1" {% if toggle_choice == 'sku' %}disabled{% endif %}>
                     <label for="quantity_1">Quantity:</label>
                     <input type="number" id="quantity_1" name="quantity_1" required>
                     <button type="button" onclick="removeItemRow('item-row-1')">Remove</button>
@@ -155,9 +155,9 @@
             newRow.id = `item-row-${itemCount}`;
             newRow.innerHTML = `
                 <label for="manufacturer_sku_${itemCount}">Manufacturer SKU:</label>
-                <input type="text" id="manufacturer_sku_${itemCount}" name="manufacturer_sku_${itemCount}">
+                <input type="text" id="manufacturer_sku_${itemCount}" name="manufacturer_sku_${itemCount}" {% if toggle_choice == 'upc' %}disabled{% endif %}>
                 <label for="upc_${itemCount}">UPC:</label>
-                <input type="text" id="upc_${itemCount}" name="upc_${itemCount}" disabled>
+                <input type="text" id="upc_${itemCount}" name="upc_${itemCount}" {% if toggle_choice == 'sku' %}disabled{% endif %}>
                 <label for="quantity_${itemCount}">Quantity:</label>
                 <input type="number" id="quantity_${itemCount}" name="quantity_${itemCount}" required>
                 <button type="button" onclick="removeItemRow('item-row-${itemCount}')">Remove</button>

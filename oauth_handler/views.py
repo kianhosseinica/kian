@@ -220,6 +220,18 @@ def add_quantity_to_item(request):
     else:
         return render(request, 'oauth_handler/add_quantity_to_item.html')
 
+
+
+
+
+
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
+import logging
+import requests
+
+ACCESS_TOKEN = None
+
 @csrf_exempt
 def update_multiple_items_preview(request):
     global ACCESS_TOKEN
@@ -228,9 +240,9 @@ def update_multiple_items_preview(request):
         for key, value in request.POST.items():
             if key.startswith('manufacturer_sku_') or key.startswith('upc_'):
                 index = key.split('_')[-1]
-                manufacturer_sku = request.POST.get(f'manufacturer_sku_{index}', '').strip()
-                upc = request.POST.get(f'upc_{index}', '').strip()
-                quantity = request.POST.get(f'quantity_{index}', '')
+                manufacturer_sku = request.POST.get(f'manufacturer_sku_{index}')
+                upc = request.POST.get(f'upc_{index}')
+                quantity = request.POST.get(f'quantity_{index}')
                 if (manufacturer_sku or upc) and quantity:
                     updates.append({
                         'manufacturer_sku': manufacturer_sku,
@@ -239,27 +251,22 @@ def update_multiple_items_preview(request):
                     })
 
         request.session['updates'] = updates
+        request.session['toggle_choice'] = request.POST.get('global_toggle', 'sku')
 
         if ACCESS_TOKEN is None:
             return JsonResponse({'error': 'Access token not available'}, status=400)
 
         item_details = []
-        unique_items = set()
         for update in updates:
-            manufacturer_sku = update.get('manufacturer_sku')
-            upc = update.get('upc')
+            identifier = update.get('manufacturer_sku') or update.get('upc')
             quantity_to_add = int(update.get('quantity'))
-
-            if (manufacturer_sku, upc) in unique_items:
-                continue  # Skip duplicates
-            unique_items.add((manufacturer_sku, upc))
+            search_field = 'manufacturerSku' if update.get('manufacturer_sku') else 'upc'
 
             # Get item details
             url = f"https://api.lightspeedapp.com/API/V3/Account/{settings.LIGHTSPEED_ACCOUNT_ID}/Item.json"
             params = {
                 'load_relations': '["ItemShops"]',
-                'manufacturerSku': manufacturer_sku,
-                'upc': upc
+                search_field: identifier
             }
             headers = {
                 'Authorization': f'Bearer {ACCESS_TOKEN}'
@@ -267,10 +274,10 @@ def update_multiple_items_preview(request):
 
             response = requests.get(url, headers=headers, params=params)
             response_data = response.json()
-            logging.info(f"Response data for SKU {manufacturer_sku or upc}: {response_data}")
+            logging.info(f"Response data for {search_field} {identifier}: {response_data}")
 
             if response.status_code != 200 or 'Item' not in response_data:
-                item_details.append({'manufacturer_sku': manufacturer_sku, 'upc': upc, 'status': 'failed', 'reason': 'Failed to fetch item details'})
+                item_details.append({'identifier': identifier, 'status': 'failed', 'reason': 'Failed to fetch item details'})
                 continue
 
             item_data = response_data['Item']
@@ -283,28 +290,29 @@ def update_multiple_items_preview(request):
             # Find the correct ItemShop
             item_shop = next((shop for shop in item_data['ItemShops']['ItemShop'] if shop['shopID'] != '0'), None)
             if not item_shop:
-                item_details.append({'manufacturer_sku': manufacturer_sku, 'upc': upc, 'status': 'failed', 'reason': 'Valid ItemShop not found'})
+                item_details.append({'identifier': identifier, 'status': 'failed', 'reason': 'Valid ItemShop not found'})
                 continue
 
             item_shop_id = item_shop['itemShopID']
             current_qoh = int(item_shop['qoh'])
 
             item_details.append({
-                'manufacturer_sku': manufacturer_sku,
-                'upc': upc,
+                'identifier': identifier,
                 'quantity_to_add': quantity_to_add,
                 'current_qoh': current_qoh,
                 'new_qoh': current_qoh + quantity_to_add,
                 'description': description,
                 'item_id': item_id,
-                'item_shop_id': item_shop_id
+                'item_shop_id': item_shop_id,
+                'search_field': search_field
             })
 
         request.session['item_details'] = item_details
         return redirect('confirm_update_items')
     else:
         updates = request.session.get('updates', [])
-        return render(request, 'oauth_handler/update_multiple_items.html', {'updates': updates})
+        toggle_choice = request.session.get('toggle_choice', 'sku')
+        return render(request, 'oauth_handler/update_multiple_items.html', {'updates': updates, 'toggle_choice': toggle_choice})
 
 @csrf_exempt
 def confirm_update_items(request):
@@ -317,8 +325,7 @@ def confirm_update_items(request):
 
         results = []
         for item in item_details:
-            manufacturer_sku = item['manufacturer_sku']
-            upc = item['upc']
+            identifier = item['identifier']
             new_quantity = item['new_qoh']
             item_id = item['item_id']
             item_shop_id = item['item_shop_id']
@@ -342,21 +349,29 @@ def confirm_update_items(request):
 
             response = requests.put(url, headers=headers, json=payload)
             if response.status_code == 200:
-                results.append({'manufacturer_sku': manufacturer_sku, 'upc': upc, 'status': 'success'})
+                results.append({'identifier': identifier, 'status': 'success'})
             else:
-                results.append({'manufacturer_sku': manufacturer_sku, 'upc': upc, 'status': 'failed', 'reason': response.text})
+                results.append({'identifier': identifier, 'status': 'failed', 'reason': response.text})
 
         all_success = all(result['status'] == 'success' for result in results)
 
         if all_success:
             request.session.pop('item_details', None)  # Clear session data after successful update
             request.session.pop('updates', None)
+            request.session.pop('toggle_choice', None)
             return render(request, 'oauth_handler/confirm_success.html')
         else:
             return JsonResponse({'results': results})
     else:
         item_details = request.session.get('item_details', [])
-        return render(request, 'oauth_handler/confirm_update_items.html', {'item_details': item_details})
+        toggle_choice = request.session.get('toggle_choice', 'sku')
+        return render(request, 'oauth_handler/confirm_update_items.html', {'item_details': item_details, 'toggle_choice': toggle_choice})
+
+
+
+
+
+
 
 @csrf_exempt
 def get_customer_details(request, customer_id):
