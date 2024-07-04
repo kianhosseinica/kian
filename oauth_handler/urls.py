@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import home,enter_password, start_refresh_and_redirect, exchange_token, refresh_token, get_account_info, get_item_details, update_item_quantity, add_quantity_to_item, update_multiple_items_preview, confirm_update_items, get_credit_account_details, get_customer_details
+from .views import *
 
 urlpatterns = [
     path('', home, name='home'),
@@ -16,4 +16,11 @@ urlpatterns = [
     path('confirm-update-items/', confirm_update_items, name='confirm_update_items'),
     path('credit-account-details/', get_credit_account_details, name='credit_account_details'),
     path('customer-details/<int:customer_id>/', get_customer_details, name='customer_details'),
+    path('fetch-items/', fetch_all_items, name='fetch_items'),
+    path('fetch-all-vendors/', fetch_all_vendors_view, name='fetch_all_vendors'),
+    path('items/', list_items, name='list_items'),
+    path('items/<int:item_id>/', item_detail, name='item_detail'),
+    path('categories/', fetch_all_categories, name='fetch-categories'),
+    path('items/reorder/', list_reorder_items, name='list-reorder-items'),
+
 ]

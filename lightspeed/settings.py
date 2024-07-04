@@ -128,3 +128,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CLIENT_ID = '26f227ea0348689a3b2f1300c6423999490230c6fe9205ea66d03cdfa5f565a8'
 CLIENT_SECRET = '74d32fa89cd49c07bcb0a3d1b6d3fa40dd935ebd15b9d4486d0aeb8cd7282fa9'
 REFRESH_TOKEN = 'd3c39b44972b45bc6ba2c65f816dce2fae02df2a'
+ACCESS_TOKEN = None  # This will be set by the refresh token process

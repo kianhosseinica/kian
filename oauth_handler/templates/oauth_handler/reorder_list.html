@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reorder List</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Items to Reorder</h1>
+
+    <form method="get" action="">
+        <label for="brand">Brand:</label>
+        <select name="brand" id="brand">
+            <option value="">Select Brand</option>
+            {% for brand in brands %}
+            <option value="{{ brand.name }}" {% if request.GET.brand == brand.name %}selected{% endif %}>{{ brand.name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="vendor">Vendor:</label>
+        <select name="vendor" id="vendor">
+            <option value="">Select Vendor</option>
+            {% for vendor in vendors %}
+            <option value="{{ vendor.name }}" {% if request.GET.vendor == vendor.name %}selected{% endif %}>{{ vendor.name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="category">Category:</label>
+        <select name="category" id="category">
+            <option value="">Select Category</option>
+            {% for category in categories %}
+            <option value="{{ category.name }}" {% if request.GET.category == category.name %}selected{% endif %}>{{ category.name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="search">Search:</label>
+        <input type="text" id="search" name="search" value="{{ request.GET.search }}">
+
+        <button type="submit">Filter</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Item Description</th>
+                <th>Manufacturer SKU</th>
+                <th>Brand</th>
+                <th>Vendor</th>
+                <th>Category</th>
+                <th>Current Quantity</th>
+                <th>Reorder Point</th>
+                <th>Reorder Level</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td>{{ item.manufacturer_sku }}</td>
+                <td>{{ item.brand.name }}</td>
+                <td>{{ item.vendor.name }}</td>
+                <td>{{ item.category.name }}</td>
+                <td>{{ item.quantity_on_hand }}</td>
+                <td>{{ item.reorder_point }}</td>
+                <td>{{ item.reorder_level }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8">No items meet the criteria.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

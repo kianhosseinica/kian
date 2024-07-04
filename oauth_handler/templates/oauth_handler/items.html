@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Item List</title>
+</head>
+<body>
+    <h1>Item List (Total: {{ total_count }})</h1>
+    {% if items %}
+        <ul>
+        {% for item in items %}
+            <li>
+                <strong>Description:</strong> {{ item.description }}<br>
+                <strong>System SKU:</strong> {{ item.systemSku }}<br>
+                <strong>Manufacturer SKU:</strong> {{ item.manufacturerSku }}<br>
+                <strong>Default Cost:</strong> {{ item.defaultCost }}<br>
+                <strong>Average Cost:</strong> {{ item.avgCost }}<br>
+                <strong>Tax Class:</strong> 
+                {% if item.TaxClass %}
+                    {{ item.TaxClass.name }}
+                {% endif %}<br>
+                <strong>Quantity on Hand:</strong> 
+                {% if item.ItemShops and item.ItemShops.ItemShop %}
+                    {% for shop in item.ItemShops.ItemShop %}
+                        {{ shop.qoh }} (Shop ID: {{ shop.shopID }}){% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                {% endif %}<br>
+                <strong>Vendor Name:</strong> 
+                {{ item.vendorName }}<br>
+                <strong>Brand Name:</strong> 
+                {% if item.Manufacturer %}
+                    {{ item.Manufacturer.name }}
+                {% else %}
+                    Not Available
+                {% endif %}<br>
+                <strong>Prices:</strong>
+                {% if item.Prices and item.Prices.ItemPrice %}
+                    <ul>
+                    {% for price in item.Prices.ItemPrice %}
+                        <li>{{ price.useType }}: {{ price.amount }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No items found.</p>
+    {% endif %}
+    {% if error %}
+        <p>Error: {{ error }}</p>
+    {% endif %}
+</body>
+</html>
